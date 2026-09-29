@@ -1,5 +1,6 @@
 node_modules/
 data/*.db
+data/backup/
 data/*.db-shm
 data/*.db-wal
 .env

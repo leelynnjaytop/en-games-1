@@ -157,18 +157,26 @@ server {
 
 所有数据（题库、班级名单、成绩、错题本）都在**一个文件**里：`data/app.db`。
 
+> ⚠️ **不要直接 `cp app.db`。** 数据库开的是 WAL 模式，服务运行时新数据大部分还在
+> `app.db-wal` 里，单独复制 `app.db` 会得到一个几乎空的文件——看着像备份，实际什么都没有。
+
 ```bash
-# 备份：复制走就行
-cp /opt/en-games/data/app.db ~/backup/app-$(date +%F).db
+# 备份：内置命令，不用停服务，产出自洽的单文件，并当场校验里面有多少条数据
+npm run backup                       # → data/backup/app-YYYYMMDD-HHMMSS.db
+npm run backup /path/to/mybak.db     # 或指定路径
 
 # 恢复
 sudo systemctl stop en-games
-cp ~/backup/app-2026-09-29.db /opt/en-games/data/app.db
+cp ~/app-20260929-140000.db /opt/en-games/data/app.db
+rm -f /opt/en-games/data/app.db-wal /opt/en-games/data/app.db-shm   # 清掉旧 WAL
 sudo systemctl start en-games
 ```
 
-> 建议加个 crontab 每天自动备份：
-> `0 2 * * * cp /opt/en-games/data/app.db /opt/en-games/backup/app-$(date +\%F).db`
+> 每天自动备份：
+> `0 2 * * * cd /opt/en-games && /usr/bin/npm run backup >> /var/log/en-games-backup.log 2>&1`
+>
+> 如果坚持手动复制文件，必须 **`app.db`、`app.db-wal`、`app.db-shm` 三个一起复制**；
+> 或者先把服务正常停掉——服务已支持优雅关闭，收到 SIGTERM 会把 WAL 合并回 `app.db` 再退出。
 
 ---
 
@@ -234,6 +242,12 @@ npm run test:ui     # 真实浏览器自测（64 项，需要装了 Chrome 的�
 **课上不小心关了页面？** 已答的每一题都是**逐题落库**的，不会丢；但那一局不会自动计入排行榜，重开一局即可。
 
 **题库不够用了？** 后台「薄弱点统计」会提示哪类题最需要补。抽题时如果某个难度档题不够，会自动从相邻难度顶替并在日志里提示。
+
+**部署到服务器后容器起不来，报 `Cannot find module 'dotenv'`？** 多半是 `package-lock.json` 里的下载地址指向了公司内网镜像源（本机 npm 配过 registry 就会这样），服务器解析不了导致依赖装成空目录。项目根目录的 `.npmrc` 已经把源固定成公共 registry，**别删它**。检查命令：
+```bash
+grep -o '"resolved": "https://[^/]*/' package-lock.json | sort -u   # 应该只有 registry.npmjs.org
+```
+重新生成：`rm -rf node_modules package-lock.json && npm install`
 
 **想让学生用手机各自答题？** 当前是单机大屏形态。做成 Kahoot 那样的多人同场需要 WebSocket 房间系统，是另一个量级的工作量，目前没做。
 

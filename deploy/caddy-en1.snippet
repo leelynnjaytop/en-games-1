@@ -1,0 +1,22 @@
+
+# ───────────────────────────────────────────────────────────────
+# 形容词比较级/最高级课堂游戏（独立域名，容器名 en-games，同在 classhelper_default 网络）
+# Caddy 会自动为这个域名申请并续期 Let's Encrypt 证书。
+en1.lilinjie.top {
+	encode zstd gzip
+
+	reverse_proxy en-games:3000
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+	# 大屏页和后台都不该被缓存，改了题库要立刻看到
+	header /index.html Cache-Control "no-cache"
+	header /admin.html Cache-Control "no-cache"
+
+	log {
+		output stdout
+		format console
+	}
+}

@@ -59,7 +59,7 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = Number(process.env.PORT) || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   const n = db.prepare('SELECT COUNT(*) n FROM questions').get().n;
   console.log('');
   console.log('  ✅ 比较级/最高级课堂游戏已启动');
@@ -71,3 +71,22 @@ app.listen(PORT, () => {
   }
   console.log('');
 });
+
+/**
+ * 优雅关闭：docker stop / systemctl stop 发来的 SIGTERM 必须走到 db.close()，
+ * 否则 SQLite 的 WAL 不会合并回 app.db，直接复制 app.db 会得到一个空文件。
+ */
+let closing = false;
+function shutdown(sig) {
+  if (closing) return;
+  closing = true;
+  console.log(`\n收到 ${sig}，正在优雅关闭…`);
+  const done = () => {
+    try { db.close(); console.log('  ✅ 数据库已安全关闭（WAL 已合并回 app.db）'); }
+    catch (e) { console.error('  ⚠️ 关闭数据库出错：', e.message); }
+    process.exit(0);
+  };
+  server.close(done);
+  setTimeout(done, 8000).unref();   // 兜底：有长连接卡住也别拖到被 SIGKILL
+}
+for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => shutdown(sig));

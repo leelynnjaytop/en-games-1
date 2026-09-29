@@ -5,6 +5,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 
 const CHROME = process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const BASE = process.env.UI_BASE || 'http://localhost:3111';
+const ADMIN_PW = process.env.UI_PW || 'test123';
 const PORT = 9333;
 const SHOTS = '/tmp/engames-shots';
 mkdirSync(SHOTS, { recursive: true });
@@ -242,7 +243,7 @@ ok(tags.split(',').every((t) => ['reg_y', 'irregular'].includes(t)), '本局只�
 console.log('\n── 11. 老师后台 ──');
 await goto(BASE + '/admin.html');
 ok(await js(`return getComputedStyle(document.getElementById('login')).display!=='none'`), '未登录时显示登录遮罩');
-await js(`document.getElementById('loginPw').value='test123'; document.getElementById('loginForm').dispatchEvent(new Event('submit',{cancelable:true})); return 1`);
+await js(`document.getElementById('loginPw').value='${ADMIN_PW}'; document.getElementById('loginForm').dispatchEvent(new Event('submit',{cancelable:true})); return 1`);
 ok(await waitFor(`document.getElementById('login').style.display==='none'`, 5000), '口令登录成功');
 await sleep(1200);
 ok(+(await js(`return document.getElementById('kTotal').textContent`)) >= 60, '题库总数 KPI：' + await js(`return document.getElementById('kTotal').textContent`));
