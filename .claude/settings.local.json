@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(python3 -V)",
+      "Bash(docker -v)"
+    ]
+  }
+}

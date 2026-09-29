@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>比较级 &amp; 最高级大挑战</title>
+<meta name="description" content="初中英语形容词比较级/最高级课堂抢答游戏">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+<link rel="stylesheet" href="css/screen.css">
+</head>
+<body>
+
+<!-- ══════════════ 待机页 ══════════════ -->
+<section id="screen-home" class="screen active">
+  <header class="row spread">
+    <div class="row">
+      <span style="font-size:clamp(1.1rem,1.8vw,1.8rem)">🏆</span>
+      <strong style="font-size:clamp(.85rem,1.15vw,1.15rem);letter-spacing:.05em" class="dim">COMPARATIVE &amp; SUPERLATIVE</strong>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="btnSfx"   title="音效开关">🔊 音效</button>
+      <button class="btn sm" id="btnTts"   title="英文朗读开关">🗣 朗读</button>
+      <button class="btn sm" id="btnBoard">🏅 排行榜</button>
+      <a class="btn sm" href="admin.html" target="_blank" rel="noopener">⚙️ 后台</a>
+    </div>
+  </header>
+
+  <div class="grow col mid" style="gap:clamp(10px,1.6vw,26px);overflow:auto">
+    <div>
+      <h1 class="home-title">形容词比较级 &amp; 最高级<br>大&nbsp;挑&nbsp;战</h1>
+      <p class="home-sub en">Comparative &amp; Superlative Challenge</p>
+    </div>
+
+    <div class="row mid wrap" style="gap:clamp(8px,1.4vw,20px)">
+      <div class="seg" id="modeSeg">
+        <button data-mode="solo" class="on">👤 个人赛 Solo</button>
+        <button data-mode="team">⚔️ 红蓝对抗 Teams</button>
+      </div>
+      <label class="row" style="gap:.5em">
+        <span class="dim" style="font-size:clamp(.8rem,1.1vw,1.1rem)">班级</span>
+        <select id="classSel"><option value="">（不选班级）</option></select>
+      </label>
+      <span class="stat-chip">每局 <b id="chipCount">7</b> 题</span>
+      <span class="stat-chip" id="chipTimer">每题 <b>15</b> 秒</span>
+      <span class="stat-chip">题库 <b id="chipBank">–</b> 道</span>
+    </div>
+
+    <div class="home-cols">
+    <!-- 个人赛：选选手 -->
+    <div class="panel" id="soloPanel">
+      <h3>本局选手 · WHO IS PLAYING</h3>
+      <div class="row wrap" style="gap:10px;margin-bottom:.7em">
+        <button class="btn" id="btnWheel">🎲 随机点名</button>
+        <input type="text" id="playerInput" placeholder="或直接输入姓名…" style="flex:1;min-width:180px">
+        <button class="btn sm ghost" id="btnClearPlayer">清除</button>
+      </div>
+      <div class="name-grid" id="nameGrid"></div>
+      <p class="dim" id="nameHint" style="font-size:clamp(.78rem,1vw,1rem);margin:.6em 0 0">
+        选班级后可直接点名字计分（会自动记录个人错题本）；不选也能玩，手动输名字即可。
+      </p>
+    </div>
+
+    <!-- 红蓝对抗：分队 -->
+    <div class="panel" id="teamPanel" style="display:none">
+      <h3>分队 · 点名字可换队</h3>
+      <div class="row wrap" style="gap:10px;margin-bottom:.8em">
+        <button class="btn sm" id="btnSplit">🔀 一键均分两队</button>
+        <button class="btn sm ghost" id="btnClearTeams">清空</button>
+        <span class="dim" style="font-size:clamp(.78rem,1vw,1rem)">不分具体人也能直接开打，只记两队总分。</span>
+      </div>
+      <div class="row" style="gap:14px;align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <div style="color:var(--red);font-weight:900;margin-bottom:.4em">🔴 红队 <span id="redCount">0</span> 人</div>
+          <div class="name-grid" id="redGrid" style="max-height:24vh"></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="color:var(--blue);font-weight:900;margin-bottom:.4em">🔵 蓝队 <span id="blueCount">0</span> 人</div>
+          <div class="name-grid" id="blueGrid" style="max-height:24vh"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="homeBoard">
+      <h3>🔥 今日排行榜 · TODAY'S TOP 5</h3>
+      <div id="homeBoardBody" class="dim" style="font-size:clamp(.82rem,1.1vw,1.1rem)">还没有人上榜，快来当第一个！</div>
+    </div>
+    </div>
+
+  </div>
+
+  <div class="row mid" style="padding:clamp(6px,1vw,14px) 0 clamp(4px,.6vw,8px)">
+    <button class="btn primary big" id="btnStart">▶︎ 开始游戏 &nbsp;START</button>
+  </div>
+
+  <footer class="row mid dim" style="font-size:clamp(.7rem,.95vw,.95rem);gap:1.2em;flex-wrap:wrap">
+    <span>快捷键：<span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span> 选答案</span>
+    <span><span class="kbd">空格</span> 继续</span>
+    <span><span class="kbd">Enter</span> 提交</span>
+    <span><span class="kbd">Esc</span> 返回</span>
+    <span id="ttsInfo"></span>
+  </footer>
+</section>
+
+<!-- ══════════════ 随机点名转盘 ══════════════ -->
+<section id="screen-wheel" class="screen">
+  <div class="grow col mid wheel-stage">
+    <h2 style="font-size:clamp(1.3rem,2.6vw,2.6rem);font-weight:900" id="wheelTitle">🎲 随机点名 · 谁来答题？</h2>
+    <div class="wheel-window"><div class="wheel-track" id="wheelTrack"></div></div>
+    <div class="row" style="gap:14px">
+      <button class="btn primary big" id="btnSpin">开始抽人</button>
+      <button class="btn big" id="btnWheelBack">返回</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ 出题页 ══════════════ -->
+<section id="screen-quiz" class="screen">
+  <header class="quiz-top">
+    <div class="dots" id="dots"></div>
+    <span class="dim" style="font-size:clamp(.8rem,1.1vw,1.1rem)" id="qCounter">1 / 7</span>
+    <div class="grow"></div>
+    <div class="combo" id="comboBox"><span>🔥</span><span id="comboNum">2</span></div>
+    <div class="score-big" id="scoreNow">0</div>
+    <button class="btn sm" id="btnSpeak" title="朗读题目">🔊</button>
+    <button class="btn sm ghost" id="btnQuit" title="退出本局">✕</button>
+  </header>
+
+  <div class="team-bar" id="teamBar" style="display:none;margin-top:10px">
+    <div class="team-seg red"  id="segRed"  style="width:50%">🔴 <span id="redScore">0</span></div>
+    <div class="team-seg blue" id="segBlue" style="width:50%"><span id="blueScore">0</span> 🔵</div>
+  </div>
+
+  <div class="timer" id="timerBar"><div class="timer-fill" id="timerFill"></div></div>
+
+  <div class="grow col mid stem-wrap" style="gap:clamp(10px,1.5vw,24px)">
+    <div class="tag-line">
+      <span id="turnBadgeWrap"></span>
+      <span class="tag" id="tagType">单选</span>
+      <span class="tag" id="tagDiff">易</span>
+      <span class="tag" id="tagRule">语法点</span>
+    </div>
+    <div class="stem en" id="stem">题干</div>
+    <div class="stem-zh" id="stemZh"></div>
+  </div>
+
+  <div id="answerArea" style="padding-bottom:clamp(8px,1.4vw,22px)">
+    <div class="opts" id="opts"></div>
+    <div class="fill-wrap" id="fillWrap" style="display:none">
+      <input type="text" class="fill-input en" id="fillInput" autocomplete="off" autocapitalize="off"
+             spellcheck="false" placeholder="在这里输入答案…">
+      <button class="btn primary" id="btnSubmitFill">提交 &nbsp;<span class="kbd">Enter</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ 结算页 ══════════════ -->
+<section id="screen-result" class="screen">
+  <div class="grow col mid" style="gap:clamp(10px,1.6vw,24px);overflow:auto">
+    <h2 id="resultTitle" style="font-size:clamp(1.6rem,3.6vw,3.6rem);font-weight:900;text-align:center">本局结束！</h2>
+
+    <div class="row mid wrap" style="gap:clamp(16px,3vw,50px)">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 120 120">
+          <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#06d6a0"/><stop offset="100%" stop-color="#ffd166"/>
+          </linearGradient></defs>
+          <circle class="ring-bg" cx="60" cy="60" r="52" stroke-width="12"/>
+          <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52" stroke-width="12"
+                  stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+        </svg>
+        <div class="ring-mid">
+          <div><div class="ring-score" id="finalScore">0</div><div class="ring-label">总分 SCORE</div></div>
+        </div>
+      </div>
+      <div class="result-stats">
+        <div class="rstat"><b id="finalCorrect">0/7</b><span>答对 CORRECT</span></div>
+        <div class="rstat"><b id="finalAcc">0%</b><span>正确率 ACCURACY</span></div>
+        <div class="rstat"><b id="finalCombo">0</b><span>最高连对 BEST COMBO</span></div>
+        <div class="rstat"><b id="finalRank">–</b><span>今日排名 RANK</span></div>
+      </div>
+    </div>
+
+    <div id="teamResult" style="display:none;width:min(94vw,1000px)"></div>
+
+    <div class="panel" id="weakPanel" style="width:min(94vw,1000px);display:none">
+      <h3>📖 本局薄弱语法点 · 下节课重点</h3>
+      <div class="weak-list" id="weakList"></div>
+    </div>
+
+    <div class="panel" id="savePanel" style="width:min(94vw,1000px)">
+      <h3>✍️ 记成绩 · 是谁的高光时刻？</h3>
+      <div class="row wrap" style="gap:10px;margin-bottom:.7em">
+        <input type="text" id="saveName" placeholder="输入姓名…" style="flex:1;min-width:200px">
+        <button class="btn primary" id="btnSave">保存成绩</button>
+        <button class="btn ghost" id="btnSkipSave">不记录</button>
+      </div>
+      <div class="name-grid" id="saveGrid"></div>
+    </div>
+
+    <div class="row mid wrap" style="gap:12px">
+      <button class="btn primary big" id="btnAgain">🔄 再来一局</button>
+      <button class="btn big" id="btnResultBoard">🏅 看排行榜</button>
+      <button class="btn big ghost" id="btnHome">🏠 回首页</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ 排行榜 ══════════════ -->
+<section id="screen-board" class="screen">
+  <header class="row spread">
+    <h2 style="font-size:clamp(1.3rem,2.6vw,2.6rem);font-weight:900;margin:0">🏅 排行榜 Leaderboard</h2>
+    <button class="btn" id="btnBoardBack">← 返回 <span class="kbd">Esc</span></button>
+  </header>
+  <div class="row wrap" style="gap:10px;margin:clamp(8px,1.2vw,18px) 0">
+    <div class="seg" id="scopeSeg">
+      <button data-scope="today" class="on">今日</button>
+      <button data-scope="week">本周</button>
+      <button data-scope="all">总榜</button>
+    </div>
+    <div class="seg" id="lbModeSeg">
+      <button data-lbmode="solo" class="on">个人赛</button>
+      <button data-lbmode="team">分组赛</button>
+    </div>
+    <select id="boardClassSel"><option value="">全部班级</option></select>
+  </div>
+  <div class="grow panel" style="overflow:auto">
+    <table class="lb"><thead><tr>
+      <th class="rk">#</th><th>姓名</th><th>班级</th><th>得分</th><th>答对</th><th>正确率</th><th>最高连对</th><th>时间</th>
+    </tr></thead><tbody id="lbBody"></tbody></table>
+  </div>
+</section>
+
+<!-- ══════════════ 语法规则卡 ══════════════ -->
+<div class="overlay" id="ruleOverlay">
+  <div class="rule-card">
+    <div class="rule-row" id="rowPicked">
+      <div class="ic">❌</div>
+      <div class="tx">
+        <div class="rule-label">你选的 YOUR ANSWER</div>
+        <div class="rule-value bad en" id="rcPicked">—</div>
+      </div>
+    </div>
+    <div class="rule-row">
+      <div class="ic">✅</div>
+      <div class="tx">
+        <div class="rule-label">正确用法 CORRECT</div>
+        <div class="rule-value good en" id="rcAnswer">—</div>
+      </div>
+    </div>
+    <div class="rule-row">
+      <div class="ic">📖</div>
+      <div class="tx">
+        <div class="rule-label">语法规则 GRAMMAR</div>
+        <div class="rule-text" id="rcExplain">—</div>
+        <div class="rule-eg en" id="rcExample">—</div>
+      </div>
+    </div>
+    <div class="rule-cheer" id="rcCheer">💪 记住这条规则，下一题稳住！</div>
+    <div class="rule-foot">
+      <button class="btn sm" id="rcSpeak">🔊 再读一遍</button>
+      <button class="btn primary big" id="rcNext">继续 &nbsp;<span class="kbd">空格</span></button>
+    </div>
+  </div>
+</div>
+
+<script src="js/sfx.js"></script>
+<script src="js/tts.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

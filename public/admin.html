@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>老师后台 · 比较级最高级游戏</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- 登录 -->
+<div id="login">
+  <form class="box" id="loginForm">
+    <h2 style="font-size:1.15rem;margin-bottom:4px">⚙️ 老师后台</h2>
+    <p class="dim sm" style="margin:0 0 18px">输入 .env 里设置的 ADMIN_PASSWORD</p>
+    <label class="f"><span>口令</span><input type="password" id="loginPw" autocomplete="current-password" autofocus></label>
+    <div id="loginErr" class="note bad" style="display:none;margin-top:12px"></div>
+    <button class="btn pri" style="width:100%;margin-top:16px" type="submit">进入后台</button>
+    <p class="dim sm center" style="margin:14px 0 0;text-align:center"><a href="/">← 回到游戏大屏</a></p>
+  </form>
+</div>
+
+<header class="topbar">
+  <h1>⚙️ 老师后台</h1>
+  <nav class="tabs" id="tabs">
+    <button data-pane="questions" class="on">📚 题库</button>
+    <button data-pane="io">📥 导入导出</button>
+    <button data-pane="settings">🎛 游戏设置</button>
+    <button data-pane="classes">👥 班级名单</button>
+    <button data-pane="scores">🏅 成绩</button>
+    <button data-pane="stats">📊 薄弱点统计</button>
+  </nav>
+  <div class="sp"></div>
+  <a class="btn" href="/" target="_blank" rel="noopener">🎮 打开大屏</a>
+  <button class="btn" id="btnLogout">退出</button>
+</header>
+
+<main class="wrap">
+
+<!-- ══════════ 题库 ══════════ -->
+<section class="pane on" id="pane-questions">
+  <div class="grid g3" style="margin-bottom:16px">
+    <div class="kpi"><b id="kTotal">–</b><span>题目总数</span></div>
+    <div class="kpi"><b id="kEnabled" style="color:var(--good)">–</b><span>已启用</span></div>
+    <div class="kpi"><b id="kTags">–</b><span>覆盖语法点</span></div>
+    <div class="kpi"><b id="kAvgWrong" style="color:var(--bad)">–</b><span>平均错误率</span></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:14px">
+      <input type="text" id="qSearch" placeholder="搜索题干 / 答案 / 解释…" style="flex:2;min-width:200px">
+      <select id="fTag" style="flex:1;min-width:150px"><option value="">全部语法点</option></select>
+      <select id="fType" style="width:130px"><option value="">全部题型</option>
+        <option value="choice">单选</option><option value="fill">填空</option><option value="fix">改错</option></select>
+      <select id="fDiff" style="width:120px"><option value="">全部难度</option>
+        <option value="1">易</option><option value="2">中</option><option value="3">难</option></select>
+      <select id="fEnabled" style="width:120px"><option value="">全部状态</option>
+        <option value="1">已启用</option><option value="0">已停用</option></select>
+      <button class="btn pri" id="btnNewQ">+ 新建题目</button>
+    </div>
+    <div class="tbl-wrap" style="max-height:66vh">
+      <table><thead><tr>
+        <th style="width:52px">ID</th><th style="width:66px">题型</th><th>题干</th>
+        <th style="width:150px">答案</th><th style="width:130px">语法点</th>
+        <th style="width:58px">难度</th><th style="width:96px">出题/错误</th><th style="width:150px">操作</th>
+      </tr></thead><tbody id="qBody"></tbody></table>
+    </div>
+    <p class="dim sm" style="margin:10px 0 0" id="qCount"></p>
+  </div>
+</section>
+
+<!-- ══════════ 导入导出 ══════════ -->
+<section class="pane" id="pane-io">
+  <div class="grid g2">
+    <div class="card">
+      <h2>📥 从 Excel / CSV 批量导入</h2>
+      <p class="sub">在 Excel 里编辑好，另存为 CSV（UTF-8）再上传。带 id 的行会更新已有题目，不带 id 的新增。</p>
+      <div class="note info">
+        <b>列说明：</b>
+        <code class="mono">type</code>(choice/fill/fix)、<code class="mono">stem</code> 题干、<code class="mono">answer</code> 答案 为必填；
+        <code class="mono">options</code> 选项用 <code class="mono">|</code> 分隔（只有单选题需要）；
+        填空/改错题若有多个可接受答案，<code class="mono">answer</code> 里也用 <code class="mono">|</code> 分隔。
+        其余列：<code class="mono">stem_zh</code> 中文提示、<code class="mono">rule_tag</code> 语法点、<code class="mono">difficulty</code> 1/2/3、
+        <code class="mono">explain_zh</code> 中文规则、<code class="mono">explain_en</code> 英文例句、<code class="mono">enabled</code> 1/0。
+      </div>
+      <div class="row" style="margin-bottom:12px">
+        <a class="btn" href="/api/questions/template.csv">⬇️ 下载模板 CSV</a>
+        <a class="btn" href="/api/questions/export.csv">⬇️ 导出当前题库</a>
+      </div>
+      <label class="f"><span>选择 CSV 文件</span><input type="file" id="csvFile" accept=".csv,text/csv"></label>
+      <p class="dim sm" style="margin:8px 0">或直接粘贴 CSV 内容：</p>
+      <textarea id="csvText" placeholder="type,stem,answer,options,difficulty,rule_tag&#10;choice,My brother is ___ than me.,taller,taller|tallest|more tall|tall,1,reg_er" style="min-height:130px" class="mono"></textarea>
+      <div class="row" style="margin-top:12px">
+        <button class="btn pri" id="btnImport">开始导入</button>
+        <button class="btn" id="btnClearCsv">清空</button>
+      </div>
+      <div id="importResult" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2>🗄 数据备份</h2>
+      <p class="sub">所有数据（题库、名单、成绩）都在服务器上的一个 SQLite 文件里。</p>
+      <div class="note good">
+        <b>备份方法：</b>把服务器上的 <code class="mono">data/app.db</code> 复制一份就是完整备份。<br>
+        恢复：停掉服务 → 把备份文件放回 <code class="mono">data/app.db</code> → 重启。
+      </div>
+      <div class="note warn">
+        <b>重置题库：</b>在服务器项目目录执行 <code class="mono">npm run reseed</code>，
+        会清空题库并恢复内置 60 道题；<b>成绩和班级名单不受影响</b>。执行前建议先导出一份 CSV。
+      </div>
+      <h2 style="margin-top:20px">📤 成绩导出</h2>
+      <p class="sub">导出 CSV，Excel 直接打开不乱码。</p>
+      <div class="row">
+        <a class="btn" href="/api/stats/scores.csv?scope=today">今日成绩</a>
+        <a class="btn" href="/api/stats/scores.csv?scope=week">本周成绩</a>
+        <a class="btn" href="/api/stats/scores.csv?scope=all">全部成绩</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 游戏设置 ══════════ -->
+<section class="pane" id="pane-settings">
+  <div class="card">
+    <h2>🎛 游戏设置</h2>
+    <p class="sub">改完点保存，下一局立即生效（不影响已经打完的成绩记录）。</p>
+    <div class="grid g3">
+      <label class="f"><span>每局题数</span><input type="number" id="s_questions_per_round" min="1" max="50"></label>
+      <label class="f"><span>每题倒计时（秒）</span><input type="number" id="s_timer_seconds" min="3" max="120"></label>
+      <label class="f"><span>难度配比 易:中:难</span><input type="text" id="s_difficulty_ratio" placeholder="3:3:1"></label>
+      <label class="f"><span>答对基础分</span><input type="number" id="s_base_score" min="0" max="100"></label>
+      <label class="f"><span>速度奖励上限</span><input type="number" id="s_speed_bonus_max" min="0" max="50"></label>
+      <label class="f"><span>连对加分 2连,3连,4连+</span><input type="text" id="s_combo_bonus" placeholder="2,3,5"></label>
+      <label class="f"><span>答错扣分（0=不扣）</span><input type="number" id="s_penalty_on_wrong" min="0" max="50"></label>
+      <label class="f"><span>错题优先占比 %</span><input type="number" id="s_wrong_priority_pct" min="0" max="100"></label>
+      <label class="f"><span>朗读语速</span><input type="number" id="s_tts_rate" min="0.4" max="1.6" step="0.1"></label>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <label class="row"><input type="checkbox" id="s_timer_enabled"> <span>开启倒计时</span></label>
+      <label class="row"><input type="checkbox" id="s_rule_card_manual"> <span>规则卡等老师点「继续」</span></label>
+      <label class="row"><input type="checkbox" id="s_tts_enabled"> <span>开启英文朗读</span></label>
+      <label class="row"><input type="checkbox" id="s_sfx_enabled"> <span>开启音效</span></label>
+      <label class="row"><input type="checkbox" id="s_team_steal"> <span>分组赛答错可被对方抢答</span></label>
+      <label class="row"><input type="checkbox" id="s_show_leaderboard_home"> <span>待机页显示今日榜</span></label>
+    </div>
+    <label class="f" style="margin-top:16px;max-width:380px">
+      <span>音效音量 <b id="volLabel">80%</b></span>
+      <input type="range" id="s_sfx_volume" min="0" max="1" step="0.05">
+    </label>
+    <div class="row" style="margin-top:20px">
+      <button class="btn pri" id="btnSaveSettings">保存设置</button>
+      <span class="dim sm" id="settingsHint"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 班级名单 ══════════ -->
+<section class="pane" id="pane-classes">
+  <div class="grid g2">
+    <div class="card">
+      <h2>👥 班级</h2>
+      <p class="sub">建好班级并导入名单后，大屏上就能点名字计分、随机点名、一键分红蓝队。</p>
+      <div class="row" style="margin-bottom:14px">
+        <input type="text" id="newClassName" placeholder="例如：初二(3)班" style="flex:1">
+        <button class="btn pri" id="btnAddClass">+ 新建班级</button>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>班级</th><th style="width:80px">人数</th><th style="width:170px">操作</th></tr></thead>
+        <tbody id="classBody"></tbody></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📝 学生名单 <span class="pill brand" id="curClassName">未选择班级</span></h2>
+      <p class="sub">一行一个名字，支持「学号 姓名」「学号,姓名」格式。重名会自动跳过。</p>
+      <textarea id="namesText" placeholder="1 张伟&#10;2 李娜&#10;3 王芳&#10;刘洋" style="min-height:120px"></textarea>
+      <div class="row" style="margin:12px 0">
+        <button class="btn pri" id="btnImportNames">批量导入</button>
+        <span class="dim sm" id="namesHint"></span>
+      </div>
+      <div class="tbl-wrap" style="max-height:44vh">
+        <table><thead><tr><th style="width:70px">学号</th><th>姓名</th><th style="width:80px">状态</th><th style="width:150px">操作</th></tr></thead>
+        <tbody id="studentBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 成绩 ══════════ -->
+<section class="pane" id="pane-scores">
+  <div class="card">
+    <div class="row" style="margin-bottom:14px">
+      <select id="scScope" style="width:140px">
+        <option value="today">今日</option><option value="week">本周</option>
+        <option value="month">近30天</option><option value="all" selected>全部</option>
+      </select>
+      <select id="scMode" style="width:130px"><option value="solo">个人赛</option><option value="team">分组赛</option></select>
+      <select id="scClass" style="width:180px"><option value="">全部班级</option></select>
+      <select id="scGroup" style="width:150px"><option value="runs">按每一局</option><option value="players">按人汇总</option></select>
+      <div class="sp"></div>
+      <a class="btn" id="btnExportScores" href="/api/stats/scores.csv?scope=all">⬇️ 导出 CSV</a>
+    </div>
+    <div class="tbl-wrap" style="max-height:60vh"><table id="scTable">
+      <thead><tr id="scHead"></tr></thead><tbody id="scBody"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>🕐 最近对局</h2>
+    <p class="sub">点一局可以展开看逐题明细：谁答的、选了什么、对错、用时。</p>
+    <div class="tbl-wrap" style="max-height:44vh">
+      <table><thead><tr><th style="width:60px">#</th><th style="width:90px">模式</th><th>选手 / 得分</th>
+        <th style="width:70px">题数</th><th style="width:150px">时间</th><th style="width:90px"></th></tr></thead>
+      <tbody id="sessBody"></tbody></table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 统计 ══════════ -->
+<section class="pane" id="pane-stats">
+  <div class="grid g3" style="margin-bottom:16px">
+    <div class="kpi"><b id="oSessions">–</b><span>累计对局</span></div>
+    <div class="kpi"><b id="oAnswers">–</b><span>累计答题</span></div>
+    <div class="kpi"><b id="oAcc" style="color:var(--good)">–</b><span>总体正确率</span></div>
+    <div class="kpi"><b id="oStudents">–</b><span>在册学生</span></div>
+  </div>
+
+  <div class="card">
+    <h2>📊 各语法点错误率 —— 下节课该讲什么</h2>
+    <p class="sub">错误率越高的排越上面。可以按班级和时间范围筛选。</p>
+    <div class="row" style="margin-bottom:16px">
+      <select id="stClass" style="width:200px"><option value="">全部班级</option></select>
+      <select id="stDays" style="width:160px">
+        <option value="">全部时间</option><option value="1">今天</option>
+        <option value="7">近 7 天</option><option value="30">近 30 天</option></select>
+      <div class="sp"></div>
+      <button class="btn pri" id="btnWeakRound">⚡ 用最薄弱的 3 个语法点出一局专项练习</button>
+    </div>
+    <div id="ruleBars"></div>
+  </div>
+
+  <div class="card">
+    <h2>🔥 最容易错的题 TOP 10</h2>
+    <p class="sub">出现 2 次以上的题目才参与统计。错误率特别高的，要么是好考点，要么是题目本身有歧义，值得复查。</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th style="width:52px">ID</th><th>题干</th><th style="width:140px">语法点</th>
+        <th style="width:100px">出题/答错</th><th style="width:90px">错误率</th><th style="width:80px"></th></tr></thead>
+      <tbody id="hardBody"></tbody></table></div>
+  </div>
+</section>
+
+</main>
+
+<!-- 题目编辑弹窗 -->
+<div class="modal" id="qModal">
+  <div class="modal-box">
+    <div class="modal-hd"><h2 id="qmTitle">新建题目</h2><div class="sp"></div>
+      <button class="btn tiny" id="qmClose">✕ 关闭</button></div>
+    <div class="modal-bd">
+      <div class="grid g2">
+        <div>
+          <div class="grid g3" style="margin-bottom:12px">
+            <label class="f"><span>题型</span><select id="qmType">
+              <option value="choice">单选</option><option value="fill">填空</option><option value="fix">改错</option></select></label>
+            <label class="f"><span>难度</span><select id="qmDiff">
+              <option value="1">1 易</option><option value="2">2 中</option><option value="3">3 难</option></select></label>
+            <label class="f"><span>状态</span><select id="qmEnabled">
+              <option value="1">启用</option><option value="0">停用</option></select></label>
+          </div>
+          <label class="f" style="margin-bottom:12px"><span>语法点</span><select id="qmTag"></select></label>
+          <label class="f" style="margin-bottom:12px"><span>题干（用 ___ 表示空；括号里放提示词，如 (tall)）</span>
+            <textarea id="qmStem" style="min-height:66px"></textarea></label>
+          <label class="f" style="margin-bottom:12px"><span>中文提示（大屏上显示在题干下方）</span>
+            <input type="text" id="qmStemZh"></label>
+          <div id="qmOptsWrap" style="margin-bottom:12px">
+            <label class="f"><span>选项（一行一个，至少 2 个）</span>
+              <textarea id="qmOpts" style="min-height:92px" class="mono"></textarea></label>
+          </div>
+          <label class="f" style="margin-bottom:12px"><span id="qmAnsLabel">正确答案（必须和某个选项完全一致）</span>
+            <input type="text" id="qmAnswer" class="mono"></label>
+          <label class="f" style="margin-bottom:12px"><span>中文语法解释（答错时弹出的规则卡正文）</span>
+            <textarea id="qmEz" style="min-height:76px"></textarea></label>
+          <label class="f"><span>英文例句（规则卡里的例句，也是朗读内容）</span>
+            <input type="text" id="qmEe"></label>
+        </div>
+        <div>
+          <p class="dim sm" style="margin:0 0 8px"><b>大屏预览</b> —— 学生看到的就是这样</p>
+          <div class="preview" id="qmPreview"></div>
+          <div class="note info" style="margin-top:14px" id="qmTip"></div>
+          <div id="qmErr" class="note bad" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn" id="qmCancel">取消</button>
+      <button class="btn pri" id="qmSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 对局明细弹窗 -->
+<div class="modal" id="sessModal">
+  <div class="modal-box">
+    <div class="modal-hd"><h2 id="smTitle">对局明细</h2><div class="sp"></div>
+      <button class="btn tiny" id="smClose">✕ 关闭</button></div>
+    <div class="modal-bd" id="smBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "en-games-1",
+  "version": "1.0.0",
+  "description": "形容词比较级/最高级课堂抢答游戏 · Comparative & Superlative Classroom Quiz",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "reseed": "node src/seed/reseed.js",
+    "test": "node test/api.test.mjs",
+    "test:ui": "node test/ui.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0"
+  },
+  "private": true
+}
