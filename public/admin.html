@@ -200,6 +200,8 @@
       <select id="scGroup" style="width:150px"><option value="runs">按每一局</option><option value="players">按人汇总</option></select>
       <div class="sp"></div>
       <a class="btn" id="btnExportScores" href="/api/stats/scores.csv?scope=all">⬇️ 导出 CSV</a>
+      <button class="btn danger" id="btnClearToday">🧹 清除今日成绩</button>
+      <button class="btn danger" id="btnClearAll">🗑 清除全部成绩</button>
     </div>
     <div class="tbl-wrap" style="max-height:60vh"><table id="scTable">
       <thead><tr id="scHead"></tr></thead><tbody id="scBody"></tbody></table></div>

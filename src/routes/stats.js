@@ -128,4 +128,16 @@ router.get('/scores.csv', requireAdmin, (req, res) => {
   res.send(csv);
 });
 
+/** 清除成绩：排行榜 / 对局记录 / 薄弱点统计 / 错题本（scope=today 仅清今日） */
+router.delete('/records', requireAdmin, (req, res) => {
+  const today = String(req.query.scope) === 'today';
+  const d = (col) => (today ? `date(${col}) = date('now','localtime')` : '1=1');
+  db.transaction(() => {
+    db.prepare(`DELETE FROM records WHERE ${d('created_at')}`).run();
+    db.prepare(`DELETE FROM sessions WHERE ${d('started_at')}`).run(); // 级联 session_answers
+    db.prepare(`DELETE FROM wrong_book WHERE ${d('last_wrong_at')}`).run();
+  })();
+  res.json({ ok: true });
+});
+
 module.exports = { router };

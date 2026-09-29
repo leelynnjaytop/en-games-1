@@ -121,5 +121,12 @@ ok((await j('GET','/api/settings')).body.questions_per_round==='5','设置已保
 ok((await j('POST','/api/game/start',{})).body.questions.length===5,'新设置对开局生效');
 await j('PUT','/api/settings',{questions_per_round:'7'});
 
+console.log('\n── 11. 清除成绩 ──');
+ok((await j('GET','/api/leaderboard?scope=all')).body.length>=1,'清除前有成绩记录');
+ok((await j('DELETE','/api/stats/records?scope=today')).body.ok===true,'清除今日成绩');
+ok((await j('GET','/api/leaderboard?scope=all')).body.length===0,'排行榜已清空');
+ok((await j('GET','/api/stats/sessions')).body.length===0,'对局列表已清空');
+ok((await j('GET','/api/stats/overview')).body.records===0,'成绩记录数归零');
+
 console.log(`\n═══ 通过 ${pass} / 失败 ${fail} ═══\n`);
 process.exit(fail?1:0);

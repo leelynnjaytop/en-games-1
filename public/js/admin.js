@@ -413,6 +413,17 @@
       <td><button class="btn tiny" data-sess="${s.id}">明细</button></td></tr>`).join('') || emptyRow(6);
   }
   const emptyRow = (n) => `<tr><td colspan="${n}" class="dim" style="padding:2em;text-align:center">这个范围还没有记录</td></tr>`;
+
+  function clearScores(scope, label) {
+    return guard(async () => {
+      if (!confirm(`确定清除${label}？\n\n${scope === 'today' ? '今日' : '全部'}的排行榜、对局记录、薄弱点统计与错题本都会被删除，无法恢复。\n建议先导出 CSV 备份。`)) return;
+      await api('DELETE', '/api/stats/records?scope=' + scope);
+      toast('已清除' + label, 'good');
+      await loadScores();
+    });
+  }
+  $('btnClearToday').addEventListener('click', clearScores('today', '今日成绩'));
+  $('btnClearAll').addEventListener('click', clearScores('all', '全部成绩'));
   for (const id of ['scScope', 'scMode', 'scClass', 'scGroup']) $(id).addEventListener('change', guard(loadScores));
 
   $('sessBody').addEventListener('click', guard(async (e) => {
