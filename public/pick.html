@@ -67,10 +67,10 @@
   function render() {
     $('wheelTrack').style.transform = 'translateY(0)';
     $('wheelTrack').innerHTML = students.length
-      ? students.map((s) => `<div class="wheel-name">${esc(s.name)}</div>`).join('')
-      : '<div class="wheel-name dim" style="font-size:clamp(1.1rem,2.4vw,2.2rem)">没有名单</div>';
+      ? '<div class="wheel-empty">🎲 准备好了吗？</div>'
+      : '<div class="wheel-empty">没有名单</div>';
     $('btnSpin').disabled = !students.length;
-    $('hint').textContent = students.length ? `${students.length} 人参与`
+    $('hint').textContent = students.length ? `点击「开始抽人」，从 ${students.length} 人里随机点名`
       : ($('classSel').value ? '这个班还没有学生名单，去后台导入。' : '先选一个班级。');
   }
 
@@ -78,13 +78,14 @@
     if (!students.length) return;
     SFX.unlock();
     $('btnSpin').disabled = true;
-    $('hint').textContent = '';
+    $('hint').textContent = '抽取中…';
 
     const winner = students[Math.floor(Math.random() * students.length)];
     const track = $('wheelTrack');
     const seq = [];
     for (let i = 0; i < 6; i++) seq.push(...students);
     seq.push(winner);
+    track.style.transform = 'translateY(0)';
     track.innerHTML = seq.map((s) => `<div class="wheel-name">${esc(s.name)}</div>`).join('');
 
     const itemH = track.firstElementChild.getBoundingClientRect().height;

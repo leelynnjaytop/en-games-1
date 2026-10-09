@@ -282,8 +282,9 @@ const pickClassId = await js(`
     body:JSON.stringify({names:'甲同学\\n乙同学\\n丙同学'})});
   return c.id;`);
 await goto(BASE + '/pick?class=' + pickClassId);
-ok(await waitFor(`document.querySelectorAll('#wheelTrack .wheel-name').length===3`), '打开 /pick 就是独立点名页，无游戏入口');
+ok(await waitFor(`!!document.querySelector('#wheelTrack .wheel-empty') && document.querySelectorAll('#wheelTrack .wheel-name').length===0`), '打开 /pick 先显示提示，不直接暴露名单');
 ok(await js(`return document.title.includes('点名') && !document.getElementById('btnStart')`), '点名页只有转盘，没有开始游戏按钮');
+console.log('  📸', await shot('12-pick-idle'));
 await js(`document.getElementById('btnSpin').click(); return 1`);
 ok(await waitFor(`!!document.querySelector('#wheelTrack .wheel-winner')`, 6000), '抽人动画选出中签者');
 console.log('  📸', await shot('12-pick'));

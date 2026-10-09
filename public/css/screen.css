@@ -370,6 +370,7 @@ body.urgent { animation: urgent-pulse 1s ease-in-out infinite; }
 .wheel-window::before { top: 0; background: linear-gradient(rgba(11, 16, 38, .95), transparent); }
 .wheel-window::after { bottom: 0; background: linear-gradient(transparent, rgba(11, 16, 38, .95)); }
 .wheel-winner { color: var(--gold) !important; animation: winner-pop .6s cubic-bezier(.2, 1.7, .4, 1) both; text-shadow: 0 0 46px rgba(255, 209, 102, .65); }
+.wheel-empty { height: 100%; width: 100%; display: grid; place-items: center; font-size: clamp(1.1rem, 2.6vw, 2.4rem); font-weight: 800; color: var(--ink-dim); }
 @keyframes winner-pop { 0% { transform: scale(.55); opacity: 0; } 60% { transform: scale(1.22); } 100% { transform: scale(1); opacity: 1; } }
 
 /* ── 红蓝对抗 ─────────────────────────────────────────────────── */
