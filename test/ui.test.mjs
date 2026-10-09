@@ -274,7 +274,21 @@ for (const [tab, check] of [['settings', 's_questions_per_round'], ['classes', '
 ok((await js(`return document.getElementById('ruleBars').innerHTML`)).includes('bar-row'), '语法点错误率柱状图已生成');
 console.log('  📸', await shot('11-admin-stats'));
 
-console.log('\n── 12. 控制台错误 ──');
+console.log('\n── 12. 独立随机点名页 /pick ──');
+const pickClassId = await js(`
+  const c = await fetch('/api/classes',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:'点名测试班'+Date.now()})}).then(r=>r.json());
+  await fetch('/api/classes/'+c.id+'/students',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({names:'甲同学\\n乙同学\\n丙同学'})});
+  return c.id;`);
+await goto(BASE + '/pick?class=' + pickClassId);
+ok(await waitFor(`document.querySelectorAll('#wheelTrack .wheel-name').length===3`), '打开 /pick 就是独立点名页，无游戏入口');
+ok(await js(`return document.title.includes('点名') && !document.getElementById('btnStart')`), '点名页只有转盘，没有开始游戏按钮');
+await js(`document.getElementById('btnSpin').click(); return 1`);
+ok(await waitFor(`!!document.querySelector('#wheelTrack .wheel-winner')`, 6000), '抽人动画选出中签者');
+console.log('  📸', await shot('12-pick'));
+
+console.log('\n── 13. 控制台错误 ──');
 const real = errors.filter((e) => !/favicon|manifest\.json|Failed to load resource/i.test(e));
 ok(real.length === 0, '无 JS 运行时错误', real.slice(0, 4).join(' | '));
 

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎲 随机点名</title>
+<meta name="description" content="课堂随机点名转盘，跟游戏无关的独立页面">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+<link rel="stylesheet" href="css/screen.css">
+</head>
+<body>
+
+<section class="screen active">
+  <header class="row spread" style="gap:.8em;flex-wrap:wrap">
+    <h2 style="margin:0;font-size:clamp(1.2rem,2.4vw,2.2rem);font-weight:900">🎲 随机点名</h2>
+    <div class="row" style="gap:.6em;flex-wrap:wrap">
+      <label class="row" style="gap:.5em">
+        <span class="dim">班级</span>
+        <select id="classSel"></select>
+      </label>
+      <button class="btn sm" id="btnSfx" title="音效开关">🔊 音效</button>
+    </div>
+  </header>
+
+  <div class="grow col mid wheel-stage">
+    <div class="wheel-window"><div class="wheel-track" id="wheelTrack"></div></div>
+    <button class="btn primary big" id="btnSpin">开始抽人 &nbsp;<span class="kbd">空格</span></button>
+    <p class="dim" id="hint" style="min-height:1.4em;font-size:clamp(.85rem,1.3vw,1.3rem)"></p>
+  </div>
+</section>
+
+<script src="js/sfx.js"></script>
+<script src="js/fx.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const PARAMS = new URLSearchParams(location.search);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let students = [];
+
+  const api = async (url) => { const r = await fetch(url); return r.ok ? r.json() : []; };
+
+  function syncSfx() {
+    $('btnSfx').textContent = SFX.isEnabled() ? '🔊 音效' : '🔇 音效';
+    $('btnSfx').classList.toggle('ghost', !SFX.isEnabled());
+  }
+
+  async function loadClasses() {
+    const classes = await api('/api/classes');
+    $('classSel').innerHTML = '<option value="">（选择班级）</option>' +
+      classes.map((c) => `<option value="${c.id}">${esc(c.name)} · ${c.student_count}人</option>`).join('');
+    const want = PARAMS.get('class') || localStorage.getItem('engames.classId');
+    if (want && classes.some((c) => String(c.id) === want)) $('classSel').value = want;
+    else if (classes.length === 1) $('classSel').value = classes[0].id;
+    await loadStudents();
+  }
+
+  async function loadStudents() {
+    const id = $('classSel').value;
+    localStorage.setItem('engames.classId', id);
+    students = id ? (await api(`/api/classes/${id}/students`)).filter((s) => s.active) : [];
+    render();
+  }
+
+  function render() {
+    $('wheelTrack').style.transform = 'translateY(0)';
+    $('wheelTrack').innerHTML = students.length
+      ? students.map((s) => `<div class="wheel-name">${esc(s.name)}</div>`).join('')
+      : '<div class="wheel-name dim" style="font-size:clamp(1.1rem,2.4vw,2.2rem)">没有名单</div>';
+    $('btnSpin').disabled = !students.length;
+    $('hint').textContent = students.length ? `${students.length} 人参与`
+      : ($('classSel').value ? '这个班还没有学生名单，去后台导入。' : '先选一个班级。');
+  }
+
+  function spin() {
+    if (!students.length) return;
+    SFX.unlock();
+    $('btnSpin').disabled = true;
+    $('hint').textContent = '';
+
+    const winner = students[Math.floor(Math.random() * students.length)];
+    const track = $('wheelTrack');
+    const seq = [];
+    for (let i = 0; i < 6; i++) seq.push(...students);
+    seq.push(winner);
+    track.innerHTML = seq.map((s) => `<div class="wheel-name">${esc(s.name)}</div>`).join('');
+
+    const itemH = track.firstElementChild.getBoundingClientRect().height;
+    const endY = -(seq.length - 1) * itemH;
+    const dur = 3000, t0 = performance.now();
+    SFX.drumroll();
+
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      track.style.transform = `translateY(${endY * e}px)`;
+      if (p < 1) return requestAnimationFrame(step);
+      SFX.wheelStop();
+      track.lastElementChild.classList.add('wheel-winner');
+      FX.confetti(110);
+      $('btnSpin').disabled = false;
+      $('hint').textContent = `👉 ${winner.name}`;
+    };
+    requestAnimationFrame(step);
+  }
+
+  document.addEventListener('pointerdown', () => SFX.unlock(), { once: true });
+  $('classSel').addEventListener('change', () => { SFX.select(); loadStudents(); });
+  $('btnSpin').addEventListener('click', spin);
+  $('btnSfx').addEventListener('click', () => { SFX.setEnabled(!SFX.isEnabled()); SFX.click(); syncSfx(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === ' ' && !$('btnSpin').disabled) { e.preventDefault(); spin(); }
+  });
+
+  (async () => {
+    try {
+      const st = await api('/api/settings');
+      if ('sfx_enabled' in st) SFX.setEnabled(String(st.sfx_enabled) === '1');
+      if (st.sfx_volume) SFX.setVolume(Number(st.sfx_volume));
+    } catch { /* 设置读不到就用默认音效 */ }
+    syncSfx();
+    loadClasses();
+  })();
+})();
+</script>
+</body>
+</html>

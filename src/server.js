@@ -64,6 +64,7 @@ const server = app.listen(PORT, () => {
   console.log('');
   console.log('  ✅ 比较级/最高级课堂游戏已启动');
   console.log(`  🎮 大屏游戏   http://localhost:${PORT}/`);
+  console.log(`  🎲 随机点名   http://localhost:${PORT}/pick`);
   console.log(`  ⚙️  老师后台   http://localhost:${PORT}/admin.html`);
   console.log(`  🗄️  数据库     ${DB_PATH}  （题库 ${n} 道）`);
   if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'change-me-please') {
